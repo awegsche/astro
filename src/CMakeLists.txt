@@ -8,5 +8,6 @@ add_executable(astro_viewer
 target_link_libraries(astro_viewer
   GLEW::GLEW
   glfw
-  OpenGL
+  dear_spdlogger
+  spdlog::spdlog
   )

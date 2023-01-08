@@ -9,6 +9,8 @@
 #include <imgui_impl_opengl3.h>
 #include <iostream>
 
+#include <dear_sink.h>
+
 class MainWindow {
   private:
     GLFWwindow *m_window;
@@ -18,25 +20,16 @@ class MainWindow {
 
     bool m_isvalid = false;
 
+    dear_sink_mt_t m_sink;
+
   public:
     MainWindow();
 
-    void begin_frame() {
-        glfwPollEvents();
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    void begin_frame();
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // docking
-        ImGui::SetNextWindowPos({0.0f, bottom_margin});
-        ImGui::SetNextWindowSize({m_window_width, bottom_margin});
-        ImGui::Begin("Log");
-        ImGui::End();
-    }
     void end_frame() const;
+
+    bool should_close() const { return glfwWindowShouldClose(m_window); }
 };
 
 #endif // MAINWINDOW_H_

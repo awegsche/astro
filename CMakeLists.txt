@@ -11,8 +11,15 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 
+message("glew include: ${GLEW_INCLUDE_DIRS}")
+message("glew include: ${GLEW_INCLUDE_DIR}")
+
 include_directories(
+  "ext/dear_spdlog/src"
+  ${GLEW_INCLUDE_DIRS}
+  ${GLFW_INCLUDE_DIR}
   ${CUDAToolkit_INCLUDE_DIRS}
   )
 
+add_subdirectory("ext/dear_spdlog")
 add_subdirectory("src")
