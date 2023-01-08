@@ -3,4 +3,7 @@ build-*
 cmake-*.sh
 make-*.sh
 compile_commands.json
+.vs
+out
+CMakeSettings.json
 
