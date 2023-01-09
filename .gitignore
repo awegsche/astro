@@ -6,4 +6,5 @@ compile_commands.json
 .vs
 out
 CMakeSettings.json
+imgui.ini
 
