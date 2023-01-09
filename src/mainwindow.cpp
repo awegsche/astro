@@ -10,7 +10,7 @@
 
 #include <toml.hpp>
 
-using std::cerr, std::endl;
+using std::cerr, std::endl, std::cout;
 
 constexpr char CONFIG_PATH[]  = ".config/astro/config.toml";
 constexpr float DEFAULT_FSIZE = 16.0f;
@@ -135,4 +135,14 @@ auto Config::load_default() -> Config {
     }
 
     return conf;
+}
+
+MainWindow::~MainWindow() {
+    if (m_isvalid) {
+        cout << ("shutting down window") << endl;
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
+    cout << ("shutting down glfw") << endl;
+    glfwTerminate();
 }

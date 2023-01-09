@@ -7,7 +7,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <iostream>
 #include <optional>
 #include <string>
 
@@ -22,6 +21,7 @@ struct Config {
 
 class MainWindow {
   private:
+    // general window parameters
     GLFWwindow *m_window;
     GLsizei m_window_width  = 1440;
     GLsizei m_window_height = 1024;
@@ -30,10 +30,13 @@ class MainWindow {
     bool m_isvalid = false;
 
     dear_sink_mt_t m_sink;
+
+    // config
     Config m_config = {};
 
   public:
     MainWindow();
+    ~MainWindow();
 
     void begin_frame();
 
