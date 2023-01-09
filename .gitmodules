@@ -1,3 +1,6 @@
 [submodule "ext/dear_spdlog"]
 	path = ext/dear_spdlog
 	url = git@github.com:awegsche/dear_spdlog.git
+[submodule "ext/toml11"]
+	path = ext/toml11
+	url = git@github.com:ToruNiina/toml11.git

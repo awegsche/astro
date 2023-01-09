@@ -8,8 +8,17 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <iostream>
+#include <optional>
+#include <string>
 
 #include <dear_sink.h>
+
+struct Config {
+    std::optional<std::string> font_path = {};
+    float font_size                      = 16.0f;
+
+    static auto load_default() -> Config;
+};
 
 class MainWindow {
   private:
@@ -21,6 +30,7 @@ class MainWindow {
     bool m_isvalid = false;
 
     dear_sink_mt_t m_sink;
+    Config m_config = {};
 
   public:
     MainWindow();

@@ -1,15 +1,30 @@
 #include "mainwindow.h"
+#include "toml/get.hpp"
+#include "toml/parser.hpp"
+#include <cstdlib>
 #include <filesystem>
+#include <imgui.h>
+#include <optional>
 #include <spdlog/spdlog.h>
+#include <stdlib.h>
+
+#include <toml.hpp>
+
+using std::cerr, std::endl;
+
+constexpr char CONFIG_PATH[]  = ".config/astro/config.toml";
+constexpr float DEFAULT_FSIZE = 16.0f;
 
 MainWindow::MainWindow() {
-    using std::cerr, std::endl;
+
+    // try to get config
+    m_config = Config::load_default();
 
     if (!glfwInit())
         return;
 
     // create window
-    m_window = glfwCreateWindow(m_window_width, m_window_height, "Asto Viewer", NULL, NULL);
+    m_window = glfwCreateWindow(m_window_width, m_window_height, "Astro Viewer", NULL, NULL);
 
     if (!m_window) {
         cerr << "Couldn create window" << endl;
@@ -32,11 +47,15 @@ MainWindow::MainWindow() {
 
     auto &io = ImGui::GetIO();
 
-    // TODO: this is not portable, move to config file or whatever
-    static const char fira_path[] = "C:\\Users\\andiw\\AppData\\Local\\Microsoft\\Windows\\Fonts\\FiraCode-SemiBold.ttf";
-
-    if (std::filesystem::exists(fira_path)) {
-        io.Fonts->AddFontFromFileTTF(fira_path, 20.0f);
+    if (m_config.font_path.has_value()) {
+        auto path = *m_config.font_path;
+        if (std::filesystem::exists(path)) {
+            io.Fonts->AddFontFromFileTTF(path.c_str(), m_config.font_size);
+        }
+    } else {
+        ImFontConfig c;
+        c.SizePixels = m_config.font_size;
+        io.Fonts->AddFontDefault(&c);
     }
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -82,4 +101,38 @@ void MainWindow::begin_frame() {
 
     // docking
     m_sink->draw_imgui(0.0f, m_window_height - bottom_margin, static_cast<float>(m_window_width), bottom_margin);
+}
+
+auto Config::load_default() -> Config {
+    namespace fs = std::filesystem;
+
+    const char *home = std::getenv("HOME");
+
+    if (!home) {
+        spdlog::error("error loading default config file, $HOME couldn't be found");
+        return {};
+    }
+
+    fs::path config_path{home};
+    config_path /= CONFIG_PATH;
+
+    if (!fs::exists(config_path)) {
+        spdlog::error("no config file found");
+        return {};
+    }
+
+    auto toml_conf = toml::parse(config_path.c_str());
+
+    Config conf{};
+    if (toml_conf.contains("font")) {
+        auto const &font = toml::find(toml_conf, "font");
+        if (font.contains("path")) {
+            auto fpath = toml::find<std::string>(font, "path");
+            if (fs::exists(fpath))
+                conf.font_path = fpath;
+        }
+        conf.font_size = toml::find_or(font, "size", DEFAULT_FSIZE);
+    }
+
+    return conf;
 }
