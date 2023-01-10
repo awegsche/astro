@@ -11,6 +11,7 @@
 #include <toml.hpp>
 
 using std::cerr, std::endl, std::cout;
+namespace fs = std::filesystem;
 
 constexpr char CONFIG_PATH[]  = ".config/astro/config.toml";
 constexpr float DEFAULT_FSIZE = 16.0f;
@@ -104,7 +105,6 @@ void MainWindow::begin_frame() {
 }
 
 auto Config::load_default() -> Config {
-    namespace fs = std::filesystem;
 
     const char *home = std::getenv("HOME");
 
@@ -116,9 +116,13 @@ auto Config::load_default() -> Config {
     fs::path config_path{home};
     config_path /= CONFIG_PATH;
 
+    return Config{config_path};
+}
+
+Config::Config(std::filesystem::path const &config_path) {
     if (!fs::exists(config_path)) {
-        spdlog::error("no config file found");
-        return {};
+        spdlog::error("no config file found at {}", config_path);
+        return;
     }
 
     auto toml_conf = toml::parse(config_path.c_str());
@@ -133,8 +137,6 @@ auto Config::load_default() -> Config {
         }
         conf.font_size = toml::find_or(font, "size", DEFAULT_FSIZE);
     }
-
-    return conf;
 }
 
 MainWindow::~MainWindow() {

@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cstddef>
+#include <filesystem>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -12,9 +13,13 @@
 
 #include <dear_sink.h>
 
+/// The window's config
 struct Config {
     std::optional<std::string> font_path = {};
     float font_size                      = 16.0f;
+
+    Config() {}
+    explicit Config(std::filesystem::path const &config_file);
 
     static auto load_default() -> Config;
 };
@@ -29,7 +34,7 @@ class MainWindow {
 
     bool m_isvalid = false;
 
-    dear_sink_mt_t m_sink;
+    dear_sink_mt_t m_sink = nullptr;
 
     // config
     Config m_config = {};
