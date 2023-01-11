@@ -121,21 +121,20 @@ auto Config::load_default() -> Config {
 
 Config::Config(std::filesystem::path const &config_path) {
     if (!fs::exists(config_path)) {
-        spdlog::error("no config file found at {}", config_path);
+        spdlog::error("no config file found at {}", config_path.string());
         return;
     }
 
     auto toml_conf = toml::parse(config_path.c_str());
 
-    Config conf{};
     if (toml_conf.contains("font")) {
         auto const &font = toml::find(toml_conf, "font");
         if (font.contains("path")) {
             auto fpath = toml::find<std::string>(font, "path");
             if (fs::exists(fpath))
-                conf.font_path = fpath;
+                font_path = fpath;
         }
-        conf.font_size = toml::find_or(font, "size", DEFAULT_FSIZE);
+        font_size = toml::find_or(font, "size", DEFAULT_FSIZE);
     }
 }
 
