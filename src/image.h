@@ -4,13 +4,14 @@
 #include "frame.h"
 #include <filesystem>
 #include <libraw/libraw.h>
+#include <limits>
 #include <spdlog/spdlog.h>
 
 namespace fs = std::filesystem;
 
 class Image {
     std::filesystem::path m_path;
-    Frame m_frame;
+    Frame<float> m_frame;
 
   public:
     Image(fs::path const &file, LibRaw *processor) : m_path(file) {
