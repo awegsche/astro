@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 constexpr char CONFIG_PATH[]  = ".config/astro/config.toml";
 constexpr float DEFAULT_FSIZE = 16.0f;
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow(GLsizei width, GLsizei height) : m_window_width(width), m_window_height(height) {
 
     // try to get config
     m_config = Config::load_default();
@@ -82,7 +82,26 @@ MainWindow::MainWindow() {
     spdlog::info("hello to sink");
     spdlog::warn("warn from main window");
 
+    m_screen.init();
+
     m_isvalid = true;
+
+    // just for debugging
+    int w = 1024;
+    int h = 1024;
+
+    std::vector<float> data;
+    // data.reserve(w * h * sizeof(float) * 4);
+
+    for (int j = 0; j < h; ++j) {
+        for (int i = 0; i < w; ++i) {
+            data.push_back((float)i / w);
+            data.push_back((float)j / h);
+            data.push_back(1.0f);
+        }
+    }
+
+    m_screen.load_data_cpu(w, h, data.data());
 }
 
 void MainWindow::end_frame() const {
@@ -100,6 +119,7 @@ void MainWindow::begin_frame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    m_screen.display(0.0f, 0.0f, static_cast<float>(m_window_width), m_window_height - bottom_margin);
     // docking
     m_sink->draw_imgui(0.0f, m_window_height - bottom_margin, static_cast<float>(m_window_width), bottom_margin);
 }

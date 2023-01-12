@@ -13,6 +13,11 @@
 
 #include <dear_sink.h>
 
+#include "screen.h"
+
+constexpr GLsizei DEFAULT_WIDTH  = 1440;
+constexpr GLsizei DEFAULT_HEIGHT = 1024;
+
 /// The window's config
 struct Config {
     std::optional<std::string> font_path = {};
@@ -28,9 +33,9 @@ class MainWindow {
   private:
     // general window parameters
     GLFWwindow *m_window;
-    GLsizei m_window_width  = 1440;
-    GLsizei m_window_height = 1024;
-    float bottom_margin     = 512.0f;
+    GLsizei m_window_width;
+    GLsizei m_window_height;
+    float bottom_margin = 256.0f;
 
     bool m_isvalid = false;
 
@@ -40,7 +45,11 @@ class MainWindow {
     Config m_config = {};
 
   public:
-    MainWindow();
+    // public for debugging
+    Screen m_screen = {};
+
+    MainWindow(GLsizei width = DEFAULT_WIDTH, GLsizei height = DEFAULT_HEIGHT);
+
     ~MainWindow();
 
     void begin_frame();
