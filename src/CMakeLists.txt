@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 3.18)
 
+if (WIN32)
+add_compile_definitions(NOMINMAX)
+endif()
+
 add_executable(astro_viewer
   main.cpp
   mainwindow.cpp
   photobatch.cpp
   image.h
   frame.h
+  screen.cpp
+  screen.h
   )
 
 target_link_libraries(astro_viewer PRIVATE
