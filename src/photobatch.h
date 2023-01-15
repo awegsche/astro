@@ -38,7 +38,7 @@ class PhotoBatch {
     ///
     void combine_lights() {}
 
-  private:
+  public:
     fs::path m_root;
 
     std::vector<Image> m_lights;

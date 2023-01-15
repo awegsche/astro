@@ -10,6 +10,7 @@
 namespace fs = std::filesystem;
 
 class Image {
+  public:
     std::filesystem::path m_path;
     Frame<float> m_frame;
 
