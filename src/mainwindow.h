@@ -14,6 +14,7 @@
 #include <dear_sink.h>
 
 #include "screen.h"
+#include "photobatch.h"
 
 constexpr GLsizei DEFAULT_WIDTH  = 1440;
 constexpr GLsizei DEFAULT_HEIGHT = 1024;
@@ -36,6 +37,7 @@ class MainWindow {
     GLsizei m_window_width;
     GLsizei m_window_height;
     float bottom_margin = 256.0f;
+    float left_margin   = 256.0f;
 
     bool m_isvalid = false;
 
@@ -44,6 +46,7 @@ class MainWindow {
     // config
     Config m_config = {};
 
+    BatchUi m_batch = {};
   public:
     // public for debugging
     Screen m_screen = {};
