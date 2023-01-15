@@ -116,6 +116,7 @@ void MainWindow::end_frame() const {
 
 void MainWindow::begin_frame() {
     constexpr float STATUS_BAR_HEIGHT = 35.0f;
+
     glfwPollEvents();
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -127,7 +128,8 @@ void MainWindow::begin_frame() {
     m_screen.display(left_margin, 0.0f, static_cast<float>(m_window_width - left_margin),
                      m_window_height - bottom_margin);
     // docking
-    m_sink->draw_imgui(0.0f, m_window_height - bottom_margin, static_cast<float>(m_window_width), bottom_margin - STATUS_BAR_HEIGHT);
+    m_sink->draw_imgui(0.0f, m_window_height - bottom_margin, static_cast<float>(m_window_width),
+                       bottom_margin - STATUS_BAR_HEIGHT);
 
     ImGui::SetNextWindowPos({0.0f, 0.0f});
     ImGui::SetNextWindowSize({left_margin, m_window_height - bottom_margin});
@@ -139,7 +141,8 @@ void MainWindow::begin_frame() {
     ImGui::SetNextWindowPos({0.0f, m_window_height - STATUS_BAR_HEIGHT});
     ImGui::SetNextWindowSize({(float)m_window_width, STATUS_BAR_HEIGHT});
     ImGui::Begin("Status Bar", nullptr,
-                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration);
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoDecoration);
     ImGui::Text("Status Bar");
     ImGui::SameLine();
     ImGui::Text("Hello");

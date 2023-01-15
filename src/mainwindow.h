@@ -13,8 +13,8 @@
 
 #include <dear_sink.h>
 
-#include "screen.h"
 #include "photobatch.h"
+#include "screen.h"
 
 constexpr GLsizei DEFAULT_WIDTH  = 1440;
 constexpr GLsizei DEFAULT_HEIGHT = 1024;
@@ -48,7 +48,7 @@ class MainWindow {
 
     // data
     std::filesystem::path m_root = {};
-    BatchUi m_batch = {};
+    BatchUi m_batch              = {};
 
   public:
     // public for debugging
