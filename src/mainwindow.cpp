@@ -179,6 +179,8 @@ Config::Config(std::filesystem::path const &config_path) {
             auto fpath = toml::find<std::string>(font, "path");
             if (fs::exists(fpath))
                 font_path = fpath;
+            else
+                spdlog::warn("Font at {} can't be loaded.", fpath.c_str());
         }
         font_size = toml::find_or(font, "size", DEFAULT_FSIZE);
     }
