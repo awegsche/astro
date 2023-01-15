@@ -21,12 +21,14 @@ constexpr char ROOT[] = "/mnt/c";
 #endif
 
 int main(int argc, char *argv[]) {
-    MainWindow window{2560, 1440};
+    MainWindow window{std::filesystem::path{ROOT} / "Astro/test", 2560, 1024};
 
+    /*
     std::future<Image> future_im = std::async(std::launch::async, []() {
         return Image::load_without_processor(std::filesystem::path{ROOT} /
                                              "Astro/Raw2208/Andro_day1/lights/IMG_7419.CR2");
     });
+    */
 
     spdlog::info("load image");
     auto start = std::chrono::steady_clock::now();
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) {
     bool queue = true;
 
     while (!window.should_close()) {
+            /*/
         if (queue) {
             if (future_im.wait_for(1ms) == std::future_status::ready) {
                 const auto elapsed    = std::chrono::steady_clock::now() - start;
@@ -51,6 +54,7 @@ int main(int argc, char *argv[]) {
                 queue = false;
             }
         }
+        */
 
         window.begin_frame();
         window.end_frame();

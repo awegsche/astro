@@ -46,12 +46,15 @@ class MainWindow {
     // config
     Config m_config = {};
 
+    // data
+    std::filesystem::path m_root = {};
     BatchUi m_batch = {};
+
   public:
     // public for debugging
     Screen m_screen = {};
 
-    MainWindow(GLsizei width = DEFAULT_WIDTH, GLsizei height = DEFAULT_HEIGHT);
+    MainWindow(std::filesystem::path const &root, GLsizei width = DEFAULT_WIDTH, GLsizei height = DEFAULT_HEIGHT);
 
     ~MainWindow();
 

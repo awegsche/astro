@@ -16,7 +16,8 @@ namespace fs = std::filesystem;
 constexpr char CONFIG_PATH[]  = ".config/astro/config.toml";
 constexpr float DEFAULT_FSIZE = 16.0f;
 
-MainWindow::MainWindow(GLsizei width, GLsizei height) : m_window_width(width), m_window_height(height) {
+MainWindow::MainWindow(fs::path const &root, GLsizei width, GLsizei height)
+    : m_window_width(width), m_window_height(height), m_root(root) {
 
     // try to get config
     m_config = Config::load_default();
@@ -92,6 +93,9 @@ MainWindow::MainWindow(GLsizei width, GLsizei height) : m_window_width(width), m
 
     std::vector<float> data;
     // data.reserve(w * h * sizeof(float) * 4);
+
+    if (fs::exists(m_root))
+        m_batch.load(m_root);
 
     for (int j = 0; j < h; ++j) {
         for (int i = 0; i < w; ++i) {
