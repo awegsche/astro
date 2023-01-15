@@ -188,10 +188,8 @@ Config::Config(std::filesystem::path const &config_path) {
 
 MainWindow::~MainWindow() {
     if (m_isvalid) {
-        cout << ("shutting down window") << endl;
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
-    cout << ("shutting down glfw") << endl;
     glfwTerminate();
 }
