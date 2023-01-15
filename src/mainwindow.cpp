@@ -148,7 +148,11 @@ void MainWindow::begin_frame() {
 
 auto Config::load_default() -> Config {
 
+#ifdef WIN32
+    const char *home = std::getenv("USERPROFILE");
+#else
     const char *home = std::getenv("HOME");
+#endif
 
     if (!home) {
         spdlog::error("error loading default config file, $HOME couldn't be found");
