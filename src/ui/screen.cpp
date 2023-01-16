@@ -146,7 +146,7 @@ void Screen::init() {
     m_valid = true;
 }
 
-void Screen::load_data_cpu(int width, int height, const void *data) {
+void Screen::load_data_cpu(int width, int height, const float *data) {
     assert(m_valid);
 
     m_width  = width;
@@ -154,11 +154,11 @@ void Screen::load_data_cpu(int width, int height, const void *data) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, reinterpret_cast<const void *>(data));
     // glTextureStorage2D(m_texture, 1, GL_RGBA32F, width, height);
     // glTextureSubImage2D(m_texture, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, data);
     glBindTexture(GL_TEXTURE_2D, 0);
-    //glGenTextures(1, &m_texturebuffer);
+    // glGenTextures(1, &m_texturebuffer);
 
     glBindTexture(GL_TEXTURE_2D, m_texturebuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -173,8 +173,8 @@ void Screen::load_data_cpu(int width, int height, const void *data) {
 
 void draw_callback(const ImDrawList *parent_list, const ImDrawCmd *cmd) { glViewport(0, 0, 400, 400); }
 
-void Screen::render() const{
-    
+void Screen::render() const {
+
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
     glViewport(0, 0, m_width, m_height);
@@ -204,27 +204,23 @@ void Screen::render() const{
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 }
 
-void Screen::display(float x, float y, float w, float h) const {
+void Screen::display(float w, float h, ImGuiWindowFlags flags) const {
     assert(m_valid);
 
     // fit image
     float scale   = std::min(1.0f, std::min(w / static_cast<float>(m_width), h / static_cast<float>(m_height)));
+    //scale         = 1.0f;
     float image_w = m_width * scale;
     float image_h = m_height * scale;
 
     render();
 
-
-    ImGui::SetNextWindowPos({x, y});
-    ImGui::SetNextWindowSize({w, h});
-    ImGui::Begin("Screen", nullptr,
-                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                     ImGuiWindowFlags_NoCollapse);
-    //ImVec2 pos = ImGui::GetCursorPos();
-    //ImDrawList *drawList = ImGui::GetWindowDrawList();
-    //drawList->AddImage((void *)m_texturebuffer, pos, {pos.x + 512, pos.y + 512}, {1, 0}, {0, 1});
-    ImGui::BeginChild("sc0");
+    // ImGui::Begin("Screen", nullptr, flags);
+    // ImVec2 pos = ImGui::GetCursorPos();
+    // ImDrawList *drawList = ImGui::GetWindowDrawList();
+    // drawList->AddImage((void *)m_texturebuffer, pos, {pos.x + 512, pos.y + 512}, {1, 0}, {0, 1});
+    // ImGui::BeginChild("sc0");
     ImGui::Image(reinterpret_cast<ImTextureID>(m_texturebuffer), {image_w, image_h}, {1, 0}, {0, 1});
-    ImGui::EndChild();
-    ImGui::End();
+    // ImGui::EndChild();
+    // ImGui::End();
 }

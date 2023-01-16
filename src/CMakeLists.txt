@@ -4,16 +4,36 @@ if (WIN32)
 add_compile_definitions(NOMINMAX)
 endif()
 
-add_executable(astro_viewer
-  main.cpp
-  mainwindow.cpp
-  photobatch.cpp
-  image.h
-  frame.h
-  screen.cpp
-  screen.h
+# --------------------------------------------------------------------------------------------------
+# ---- AstroViewer ---------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
+
+# ---- Executable ----------------------------------------------------------------------------------
+#
+#
+message("cmake current dir: ${CMAKE_CURRENT_SOURCE_DIR}/ui")
+message("cmake src dir: ${CMAKE_SOURCE_DIR}/ui")
+
+include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui"
+  "${CMAKE_CURRENT_SOURCE_DIR}/image"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms"
   )
 
+add_executable(astro_viewer
+  main.cpp
+  ui/mainwindow.cpp
+  image/photobatch.cpp
+  image/image.h
+  image/frame.h
+  ui/screen.cpp
+  ui/screen.h
+  )
+
+
+# ---- Linking -------------------------------------------------------------------------------------
+#
 target_link_libraries(astro_viewer PRIVATE
   GLEW::GLEW
   imgui::imgui
@@ -21,6 +41,8 @@ target_link_libraries(astro_viewer PRIVATE
   spdlog::spdlog
   libraw::libraw
   dear_spdlogger
+  nlohmann_json::nlohmann_json
+  ZLIB::ZLIB
   )
 
 if(LINUX)
@@ -30,6 +52,8 @@ if(LINUX)
   )
 endif()
 
+# ---- Resources -----------------------------------------------------------------------------------
+#
 set(copiedShaders "")
 
 add_custom_command(

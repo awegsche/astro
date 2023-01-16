@@ -1,7 +1,6 @@
 #ifndef PHOTOBATCH_H_
 #define PHOTOBATCH_H_
 
-#include "image.h"
 #include <chrono>
 #include <filesystem>
 #include <future>
@@ -11,10 +10,32 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+#include "image.h"
 #include "screen.h"
+#include "star_detection.h"
 
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;
+
+struct ImagePath {
+    enum ImageType { RawImage, Converted, None } type = None;
+
+    fs::path path = {};
+};
+
+auto get_image_path(fs::directory_entry const &f) -> ImagePath {
+    if (f.is_regular_file()) {
+        // check if tiff already exists
+        auto path_converted = image_root.parent_path() / "converted" / f.path().filename();
+        if (fs::exists(path_converted)) {
+            spdlog::info("loading converted file");
+            return {ImagePath::Converted, path_converted};
+        } else {
+            return {ImagePath::RawImage, f.path()};
+        }
+    }
+    return {};
+}
 
 class PhotoBatch {
   public:
@@ -24,16 +45,15 @@ class PhotoBatch {
 
         LibRaw processor;
 
+        auto open_file = [&processor](fs::directory_entry const &f, std::vector<Image> &images,
+                                      fs::path const &image_root) {};
+
         for (auto const &f : fs::directory_iterator{path_lights}) {
-            if (f.is_regular_file()) {
-                m_lights.emplace_back(f.path(), &processor);
-            }
+            open_file(f, m_lights, path_lights);
         }
 
         for (auto const &f : fs::directory_iterator{path_darks}) {
-            if (f.is_regular_file()) {
-                m_darks.emplace_back(f.path(), &processor);
-            }
+            open_file(f, m_darks, path_darks);
         }
     }
 
@@ -69,6 +89,8 @@ class BatchUi {
     int m_selected_light = -1;
     int m_selected_dark  = -1;
 
+    std::unique_ptr<StarDetectorUi> star_detector;
+
     enum Status {
         Empty,
         Loading,
@@ -85,7 +107,6 @@ class BatchUi {
     }
 
     /// Draws the photobatch UI.
-    /// If a different
     void draw_imgui(Screen &screen) {
         if (!ImGui::CollapsingHeader("Batch"))
             return;
@@ -124,7 +145,9 @@ class BatchUi {
             if (selected != m_selected_light) {
                 if (selected >= 0) {
                     auto const &image = m_photobatch->m_lights[selected];
-                    screen.load_data_cpu(image.width(), image.height(), image.data());
+                    screen.load_data_cpu(image.width(), image.height(), reinterpret_cast<const float *>(image.data()));
+
+                    star_detector = std::make_unique<StarDetectorUi>(image.m_frame);
                 }
                 m_selected_light = selected;
                 m_selected_dark  = -1;
@@ -140,7 +163,7 @@ class BatchUi {
             if (selected != m_selected_dark) {
                 if (selected >= 0) {
                     auto const &image = m_photobatch->m_darks[selected];
-                    screen.load_data_cpu(image.width(), image.height(), image.data());
+                    screen.load_data_cpu(image.width(), image.height(), reinterpret_cast<const float *>(image.data()));
                 }
                 m_selected_dark  = selected;
                 m_selected_light = -1;
@@ -148,6 +171,12 @@ class BatchUi {
             break;
         }
         }
+    }
+
+    void draw_floating() const {
+
+        if (star_detector)
+            star_detector->draw_imgui();
     }
 };
 

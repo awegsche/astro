@@ -2,6 +2,7 @@
 #define SCREEN_H_
 
 #include <GL/glew.h>
+#include <imgui.h>
 
 /// Screen contains the image to be shown to the user.
 ///
@@ -12,16 +13,16 @@ class Screen {
     int m_width  = 1024;
     int m_height = 1024;
 
-    float m_gamma = 1.0f/2.2f;
+    float m_gamma      = 1.0f / 2.2f;
     float m_whitepoint = 0.3f;
     float m_blackpoint = 0.0f;
 
-    GLuint m_glslVS            = 0;
-    GLuint m_glslFS            = 0;
-    GLuint m_glslProgram       = 0;
-    GLuint m_position_location = 0;
-    GLuint m_texcoord_location = 0;
-    GLuint m_gamma_location = 0;
+    GLuint m_glslVS              = 0;
+    GLuint m_glslFS              = 0;
+    GLuint m_glslProgram         = 0;
+    GLuint m_position_location   = 0;
+    GLuint m_texcoord_location   = 0;
+    GLuint m_gamma_location      = 0;
     GLuint m_whitepoint_location = 0;
     GLuint m_blackpoint_location = 0;
 
@@ -29,9 +30,9 @@ class Screen {
     GLuint m_texture        = 0;
     GLuint m_vbo_attributes = 0;
     GLuint m_vbo_indices    = 0;
-    GLuint m_framebuffer = 0;
-    GLuint m_texturebuffer = 0;
-    GLuint rbo=0;
+    GLuint m_framebuffer    = 0;
+    GLuint m_texturebuffer  = 0;
+    GLuint rbo              = 0;
 
     bool m_valid = false;
 
@@ -43,9 +44,9 @@ class Screen {
 
     void init();
 
-    void load_data_cpu(int width, int height, const void *data);
+    void load_data_cpu(int width, int height, const float *data);
 
-    void display(float x, float y, float w, float h) const;
+    void display(float w, float h, ImGuiWindowFlags flags = 0) const;
 
     void render() const;
 };
