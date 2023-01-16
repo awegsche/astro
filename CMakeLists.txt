@@ -7,11 +7,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(spdlog CONFIG REQUIRED)
-#find_package(CUDAToolkit REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+#find_package(devil REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
+#find_package(TIFF CONFIG REQUIRED)
 
 message("glew include: ${GLEW_INCLUDE_DIRS}")
 message("glew include: ${GLEW_INCLUDE_DIR}")
@@ -24,6 +28,8 @@ include_directories(
   ${CUDAToolkit_INCLUDE_DIRS}
   ${SPDLOG_INCLUDE_DIR}
   )
+
+message("CUDA toolkit: ${CUDAToolkit_INCLUDE_DIRS}")
 
 add_subdirectory("ext/dear_spdlog")
 add_subdirectory("ext/LibRaw-cmake")
