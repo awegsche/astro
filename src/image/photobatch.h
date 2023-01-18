@@ -10,32 +10,14 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+#include "dark.h"
 #include "image.h"
+#include "image_path.h"
+#include "light.h"
 #include "screen.h"
 #include "star_detection.h"
 
 using namespace std::chrono_literals;
-namespace fs = std::filesystem;
-
-struct ImagePath {
-    enum ImageType { RawImage, Converted, None } type = None;
-
-    fs::path path = {};
-};
-
-auto get_image_path(fs::directory_entry const &f) -> ImagePath {
-    if (f.is_regular_file()) {
-        // check if tiff already exists
-        auto path_converted = image_root.parent_path() / "converted" / f.path().filename();
-        if (fs::exists(path_converted)) {
-            spdlog::info("loading converted file");
-            return {ImagePath::Converted, path_converted};
-        } else {
-            return {ImagePath::RawImage, f.path()};
-        }
-    }
-    return {};
-}
 
 class PhotoBatch {
   public:
@@ -43,17 +25,18 @@ class PhotoBatch {
         const auto path_lights = m_root / "lights";
         const auto path_darks  = m_root / "darks";
 
-        LibRaw processor;
-
-        auto open_file = [&processor](fs::directory_entry const &f, std::vector<Image> &images,
-                                      fs::path const &image_root) {};
+        auto processor = std::make_unique<LibRaw>();
 
         for (auto const &f : fs::directory_iterator{path_lights}) {
-            open_file(f, m_lights, path_lights);
+            auto light = Light::load(get_image_path(f), processor);
+            if (light)
+                m_lights.push_back(*light);
         }
 
         for (auto const &f : fs::directory_iterator{path_darks}) {
-            open_file(f, m_darks, path_darks);
+            auto dark = Dark::load(get_image_path(f), processor);
+            if (dark)
+                m_darks.push_back(*dark);
         }
     }
 
@@ -65,11 +48,19 @@ class PhotoBatch {
     ///
     void combine_lights() {}
 
+    void save() const {
+        spdlog::info("saving");
+        for (const auto &light : m_lights) {
+            light.save();
+        }
+        spdlog::info("done saving lights");
+    }
+
   public:
     fs::path m_root;
 
-    std::vector<Image> m_lights;
-    std::vector<Image> m_darks;
+    std::vector<Light> m_lights;
+    std::vector<Dark> m_darks;
 };
 
 // TODO: move this into separate files
@@ -125,12 +116,12 @@ class BatchUi {
                 m_lights_metas.clear();
                 m_lights_metas.reserve(m_photobatch->m_lights.size());
                 for (auto const &l : m_photobatch->m_lights) {
-                    m_lights_metas.push_back({l.m_path.filename().string(), true});
+                    m_lights_metas.push_back({l.filename().string(), true});
                 }
                 m_darks_metas.clear();
                 m_darks_metas.reserve(m_photobatch->m_darks.size());
                 for (auto const &l : m_photobatch->m_darks) {
-                    m_darks_metas.push_back({l.m_path.filename().string(), true});
+                    m_darks_metas.push_back({l.filename().string(), true});
                 }
             }
             break;
@@ -144,10 +135,10 @@ class BatchUi {
             ImGui::ListBox("Lights", &selected, items.data(), items.size());
             if (selected != m_selected_light) {
                 if (selected >= 0) {
-                    auto const &image = m_photobatch->m_lights[selected];
+                    auto const &image = m_photobatch->m_lights[selected].frame();
                     screen.load_data_cpu(image.width(), image.height(), reinterpret_cast<const float *>(image.data()));
 
-                    star_detector = std::make_unique<StarDetectorUi>(image.m_frame);
+                    star_detector = std::make_unique<StarDetectorUi>(image);
                 }
                 m_selected_light = selected;
                 m_selected_dark  = -1;
@@ -162,7 +153,7 @@ class BatchUi {
 
             if (selected != m_selected_dark) {
                 if (selected >= 0) {
-                    auto const &image = m_photobatch->m_darks[selected];
+                    auto const &image = m_photobatch->m_darks[selected].frame();
                     screen.load_data_cpu(image.width(), image.height(), reinterpret_cast<const float *>(image.data()));
                 }
                 m_selected_dark  = selected;

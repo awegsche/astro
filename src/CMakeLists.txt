@@ -21,20 +21,34 @@ include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms"
   )
 
-add_executable(astro_viewer
-  main.cpp
-  ui/mainwindow.cpp
-  image/photobatch.cpp
+set(HEADERS
   image/image.h
+  image/light.h
+  image/dark.h
   image/frame.h
+  image/image_path.h
+  )
+
+set(SOURCES
+  main.cpp
+  image/photobatch.cpp
+  image/image_path.cpp
+  image/image.cpp
   ui/screen.cpp
-  ui/screen.h
+  ui/mainwindow.cpp
+  )
+
+add_executable(astro_viewer
+  ${HEADERS}
+  ${SOURCES}
   )
 
 
 # ---- Linking -------------------------------------------------------------------------------------
 #
-target_link_libraries(astro_viewer PRIVATE
+set(AV_LIBS "")
+
+list(APPEND AV_LIBS
   GLEW::GLEW
   imgui::imgui
   glfw
@@ -47,11 +61,12 @@ target_link_libraries(astro_viewer PRIVATE
 
 if(LINUX)
   message("this is linux")
-  target_link_libraries(astro_viewer
+  list(APPEND AV_LIBS
     OpenGL
   )
 endif()
 
+target_link_libraries(astro_viewer PRIVATE ${AV_LIBS})
 # ---- Resources -----------------------------------------------------------------------------------
 #
 set(copiedShaders "")

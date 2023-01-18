@@ -2,6 +2,7 @@
 #define FRAME_H_
 
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 struct RGBFloat {
@@ -27,6 +28,12 @@ template <typename Color> class Frame {
   public:
     Frame() {}
     Frame(size_t width, size_t height) : m_width(width), m_height(height) { m_data.reserve(width * height); }
+
+    static Frame empty(size_t width, size_t height) {
+        Frame frame{};
+        frame.resize(width, height);
+        return frame;
+    }
 
     /// resets the sizes
     /// Attention: this does not modify the internal vector in any way.
