@@ -48,6 +48,7 @@ class ImageFile {
             // first loading, always convert
             load_raw(path.raw_path, processor);
             m_path = path.converted_path;
+            save_to_binary();
             return true;
         }
         case ImagePath::Converted: {
@@ -97,7 +98,7 @@ class ImageFile {
         processor->unpack();
         processor->raw2image();
 
-        auto frame         = Frame<RGBFloat>{(size_t)sizes.width - 1, (size_t)sizes.height - 1};
+        m_frame            = Frame<RGBFloat>{(size_t)sizes.width - 1, (size_t)sizes.height - 1};
         auto const &imdata = processor->imgdata.image;
 
         for (int j = 0; j < sizes.height - 1; ++j) {
@@ -121,7 +122,7 @@ class ImageFile {
                 ushort g = get_channel(1) + get_channel(3);
                 ushort b = get_channel(2);
 
-                frame.push_back({to_float(r), to_float(g) * 0.5f, to_float(b)});
+                m_frame.push_back({to_float(r), to_float(g) * 0.5f, to_float(b)});
             }
         }
         processor->recycle();
