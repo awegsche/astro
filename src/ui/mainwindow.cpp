@@ -87,13 +87,6 @@ MainWindow::MainWindow(fs::path const &root, GLsizei width, GLsizei height)
 
     m_isvalid = true;
 
-    // just for debugging
-    int w = 1024;
-    int h = 1024;
-
-    std::vector<float> data;
-    // data.reserve(w * h * sizeof(float) * 4);
-
     if (fs::exists(m_root))
         m_batch.load(m_root);
 }
