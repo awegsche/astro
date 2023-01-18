@@ -35,6 +35,8 @@ template <typename Color> class Frame {
         return frame;
     }
 
+    bool is_loaded() const { return m_width == 0 && m_height == 0; }
+
     /// resets the sizes
     /// Attention: this does not modify the internal vector in any way.
     /// Please make sure to apropriately resize the vector by e.g. pushing enough values;

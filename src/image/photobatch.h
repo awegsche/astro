@@ -127,10 +127,35 @@ class BatchUi {
             break;
         }
         case Ready: {
-            std::vector<const char *> items;
-            for (const auto &[l, _c] : m_lights_metas)
-                items.push_back(l.c_str());
 
+            if (ImGui::CollapsingHeader("Lights")) {
+                int id = 0;
+                for (const auto &light : m_photobatch->m_lights) {
+                    ImGui::Text("%s", light.id().c_str());
+                    ImGui::SameLine();
+                    ImGui::PushID(id);
+                    ++id;
+                    if (ImGui::Button("show")) {
+                        spdlog::info("loading {} to main", light.id());
+                        auto const &image = light.frame();
+                        screen.load_data_cpu(image.width(), image.height(),
+                                             reinterpret_cast<const float *>(image.data()));
+                    }
+                    ImGui::PopID();
+                }
+            }
+            if (ImGui::CollapsingHeader("Darks")) {
+                for (const auto &light : m_photobatch->m_lights) {
+                    ImGui::Text("%s", light.id().c_str());
+                    ImGui::SameLine();
+                    ImGui::Button("to Main");
+                }
+            }
+            // std::vector<const char *> items;
+            // for (const auto &[l, _c] : m_lights_metas)
+            //     items.push_back(l.c_str());
+
+            /*
             int selected = m_selected_light;
             ImGui::ListBox("Lights", &selected, items.data(), items.size());
             if (selected != m_selected_light) {
@@ -138,7 +163,7 @@ class BatchUi {
                     auto const &image = m_photobatch->m_lights[selected].frame();
                     screen.load_data_cpu(image.width(), image.height(), reinterpret_cast<const float *>(image.data()));
 
-                    star_detector = std::make_unique<StarDetectorUi>(image);
+                    // star_detector = std::make_unique<StarDetectorUi>(image);
                 }
                 m_selected_light = selected;
                 m_selected_dark  = -1;
@@ -159,6 +184,7 @@ class BatchUi {
                 m_selected_dark  = selected;
                 m_selected_light = -1;
             }
+            */
             break;
         }
         }

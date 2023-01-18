@@ -34,13 +34,13 @@ class Light : public ImageFile {
             for (const auto &s : stars) {
                 l.m_stars.push_back({s[0], s[1], s[2]});
             }
-        } else {
-            spdlog::info("detecting stars");
-            l.m_stars = detect_stars(l.frame());
         }
 
+        l.m_id = path.converted_path.stem().string();
         return l;
     }
+
+    void detect_stars() { m_stars = ::detect_stars(frame()); }
 
     void save() const {
         if (!m_stars.empty()) {
