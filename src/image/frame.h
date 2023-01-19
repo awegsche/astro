@@ -2,15 +2,38 @@
 #define FRAME_H_
 
 #include <cstddef>
+#include <stdint.h>
 #include <utility>
 #include <vector>
+
+constexpr float THIRD = 1.0f / 3.0f;
 
 struct RGBFloat {
     float r;
     float g;
     float b;
 
-    float mag() const { return 0.3333333333f * (r + g + b); }
+    float mag() const { return THIRD * (r + g + b); }
+};
+
+struct RGBu16 {
+    uint16_t r;
+    uint16_t g;
+    uint16_t b;
+
+    uint16_t mag() const { return (r + g + b) / 3; }
+};
+
+struct CFloat {
+    float ch;
+
+    float mag() const { return ch; }
+};
+
+struct Cu16 {
+    uint16_t ch;
+
+    uint16_t mag() const { return ch; }
 };
 
 /// The `Frame` class represents image data.

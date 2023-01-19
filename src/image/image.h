@@ -14,11 +14,11 @@
 #include "image_path.h"
 #include "libraw/libraw_const.h"
 
-class ImageFile {
+template <typename Color> class ImageFile {
   public:
     ImageFile(){};
 
-    ImageFile(Frame<RGBFloat> const &frame, fs::path const &path) : m_frame(frame), m_path(path) {}
+    ImageFile(Frame<Color> const &frame, fs::path const &path) : m_frame(frame), m_path(path) {}
 
   public:
     /// reloads the image (to save RAM)
@@ -29,9 +29,9 @@ class ImageFile {
 
     bool is_loaded() const { return m_frame.is_loaded(); }
 
-    auto frame() const -> Frame<RGBFloat> const & { return m_frame; }
+    auto frame() const -> Frame<Color> const & { return m_frame; }
 
-    auto frame() -> Frame<RGBFloat> & { return const_cast<Frame<RGBFloat> &>(std::as_const(*this).frame()); }
+    auto frame() -> Frame<Color> & { return const_cast<Frame<Color> &>(std::as_const(*this).frame()); }
 
     void change_path(fs::path const &path) { m_path = path; }
 
@@ -67,7 +67,7 @@ class ImageFile {
         // TODO: add checks
         std::ofstream ofile{m_path, std::ios::binary};
 
-        size_t n_bytes = sizeof(RGBFloat) * m_frame.width() * m_frame.height();
+        size_t n_bytes = sizeof(Color) * m_frame.width() * m_frame.height();
         auto w         = m_frame.width();
         auto h         = m_frame.height();
         ofile.write(reinterpret_cast<const char *>(&w), sizeof(size_t));
@@ -98,7 +98,7 @@ class ImageFile {
         processor->unpack();
         processor->raw2image();
 
-        m_frame            = Frame<RGBFloat>{(size_t)sizes.width - 1, (size_t)sizes.height - 1};
+        m_frame            = Frame<Color>{(size_t)sizes.width - 1, (size_t)sizes.height - 1};
         auto const &imdata = processor->imgdata.image;
 
         for (int j = 0; j < sizes.height - 1; ++j) {
@@ -143,10 +143,10 @@ class ImageFile {
 
         ifile.read(reinterpret_cast<char *>(&m_meta), sizeof(FileMeta));
 
-        auto frame     = Frame<RGBFloat>::empty(w, h);
-        RGBFloat *data = frame.data();
+        auto frame  = Frame<Color>::empty(w, h);
+        Color *data = frame.data();
 
-        ifile.read(reinterpret_cast<char *>(data), sizeof(RGBFloat) * w * h);
+        ifile.read(reinterpret_cast<char *>(data), sizeof(Color) * w * h);
     }
 
   public:
@@ -161,10 +161,10 @@ class ImageFile {
     };
 
   private:
-    fs::path m_path         = {};
-    FileType m_type         = Raw;
-    FileMeta m_meta         = {};
-    Frame<RGBFloat> m_frame = {};
+    fs::path m_path      = {};
+    FileType m_type      = Raw;
+    FileMeta m_meta      = {};
+    Frame<Color> m_frame = {};
 
   protected:
     std::string m_id = "";
