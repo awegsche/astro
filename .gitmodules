@@ -10,3 +10,6 @@
 [submodule "ext/LibRaw"]
 	path = ext/LibRaw
 	url = https://github.com/LibRaw/LibRaw.git
+[submodule "ext/nbt"]
+	path = ext/nbt
+	url = git@github.com:awegsche/nbt.git

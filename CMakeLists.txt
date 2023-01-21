@@ -27,10 +27,18 @@ include_directories(
   ${GLFW_INCLUDE_DIR}
   ${CUDAToolkit_INCLUDE_DIRS}
   ${SPDLOG_INCLUDE_DIR}
+  ${IMGUI_INCLUDE_DIR}
   )
 
 message("CUDA toolkit: ${CUDAToolkit_INCLUDE_DIRS}")
 
 add_subdirectory("ext/dear_spdlog")
 add_subdirectory("ext/LibRaw-cmake")
-add_subdirectory("src")
+add_subdirectory("ext/nbt")
+
+# the library (bulk of the code)
+add_subdirectory("lib")
+
+# the apps
+add_subdirectory("cli")
+add_subdirectory("viewer")

@@ -7,7 +7,6 @@
 #include <spdlog/spdlog.h>
 
 #include "frame.h"
-#include "screen.h"
 
 template <typename T> struct pixel_value {
     T x;
@@ -104,6 +103,7 @@ inline auto detect_stars(Frame<RGBFloat> const &frame) -> std::vector<pixel_valu
     */
 }
 
+/*
 class StarDetectorUi {
     Screen m_screen;
     Frame<RGBFloat> m_frame;
@@ -132,5 +132,6 @@ class StarDetectorUi {
         ImGui::End();
     }
 };
+*/
 
 #endif // STAR_DETECTION_H_

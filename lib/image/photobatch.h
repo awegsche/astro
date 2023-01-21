@@ -14,7 +14,7 @@
 #include "image.h"
 #include "image_path.h"
 #include "light.h"
-#include "screen.h"
+//#include "screen.h"
 #include "star_detection.h"
 
 using namespace std::chrono_literals;
@@ -64,6 +64,7 @@ class PhotoBatch {
 };
 
 // TODO: move this into separate files
+/*/
 
 class BatchUi {
     std::unique_ptr<PhotoBatch> m_photobatch = nullptr;
@@ -184,7 +185,7 @@ class BatchUi {
                 m_selected_dark  = selected;
                 m_selected_light = -1;
             }
-            */
+            *
             break;
         }
         }
@@ -196,5 +197,6 @@ class BatchUi {
             star_detector->draw_imgui();
     }
 };
+*/
 
 #endif // PHOTOBATCH_H_

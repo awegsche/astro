@@ -9,14 +9,14 @@
 #include <utility>
 #include <vector>
 
-#include "algorithms/star_detection.h"
+#include "star_detection.h"
 #include "frame.h"
 #include "image.h"
 #include "image_path.h"
 
 using nlohmann::json;
 
-class Light : public ImageFile {
+class Light : public ImageFile<RGBFloat> {
   public:
     Light() {}
 

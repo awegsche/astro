@@ -4,6 +4,8 @@ if (WIN32)
 add_compile_definitions(NOMINMAX)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # --------------------------------------------------------------------------------------------------
 # ---- AstroViewer ---------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------
@@ -11,31 +13,24 @@ endif()
 # ---- Executable ----------------------------------------------------------------------------------
 #
 #
-message("cmake current dir: ${CMAKE_CURRENT_SOURCE_DIR}/ui")
-message("cmake src dir: ${CMAKE_SOURCE_DIR}/ui")
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-  "${CMAKE_CURRENT_SOURCE_DIR}/image"
-  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms"
+  ${ASTRO_LIB_INCLUDE_DIRS}
   )
 
 set(HEADERS
-  image/image.h
-  image/light.h
-  image/dark.h
-  image/frame.h
-  image/image_path.h
+  ui/mainwindow.h
+  ui/screen.h
+  ${ASTRO_LIB_HEADERS}
   )
 
 set(SOURCES
   main.cpp
-  image/photobatch.cpp
-  image/image_path.cpp
-  image/image.cpp
-  ui/screen.cpp
   ui/mainwindow.cpp
+  ui/screen.cpp
+  ${ASTRO_LIB_SOURCES}
+
   )
 
 add_executable(astro_viewer
@@ -57,6 +52,7 @@ list(APPEND AV_LIBS
   dear_spdlogger
   nlohmann_json::nlohmann_json
   ZLIB::ZLIB
+  nbtlib
   )
 
 if(LINUX)

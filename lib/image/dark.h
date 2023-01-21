@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-class Dark : public ImageFile {
+class Dark : public ImageFile<RGBFloat> {
     public:
     static std::optional<Dark> load(ImagePath const &path, std::unique_ptr<LibRaw> const &processor) {
         Dark l{};
