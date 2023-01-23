@@ -8,13 +8,23 @@
 
 #include "frame.h"
 
+constexpr float DEFAULT_THREHOLD_FACTOR = 4.0f;
+
 template <typename T> struct pixel_value {
     T x;
     T y;
     float value;
+
+    auto operator<=>(pixel_value<T> const &other) const -> auto{ return value <=> other.value; }
+
+    auto operator-(pixel_value<T> const &other) const -> pixel_value<T> {
+        return {x - other.x, y - other.y, value - other.value};
+    }
 };
 
-inline auto detect_stars(Frame<RGBFloat> const &frame) -> std::vector<pixel_value<float>> {
+template <typename TColor>
+inline auto detect_stars(Frame<TColor> const &frame, float threshold_factor = DEFAULT_THREHOLD_FACTOR)
+    -> std::vector<pixel_value<float>> {
 
     Frame<float> reduced_frame;
     reduced_frame.resize(frame.width(), frame.height());
