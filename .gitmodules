@@ -6,7 +6,7 @@
 	url = git@github.com:ToruNiina/toml11.git
 [submodule "ext/LibRaw-cmake"]
 	path = ext/LibRaw-cmake
-	url = https://github.com/LibRaw/LibRaw-cmake.git
+	url = git@github.com:LibRaw/LibRaw-cmake.git
 [submodule "ext/LibRaw"]
 	path = ext/LibRaw
 	url = https://github.com/LibRaw/LibRaw.git
