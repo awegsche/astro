@@ -17,6 +17,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   ${ASTRO_LIB_INCLUDE_DIRS}
+  ui
   )
 
 set(HEADERS
