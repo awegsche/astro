@@ -32,14 +32,14 @@ inline auto detect_stars(Frame<TColor> const &frame, float threshold_factor = DE
 
     for (int i = 0; i < frame.width(); ++i) {
         for (int j = 0; j < frame.height(); ++j) {
-            float mag                  = frame.at(i, j).mag();
+            float mag                  = static_cast<float>(frame.at(i, j).mag());
             reduced_frame.at_mut(i, j) = mag;
             threshold += mag;
         }
     }
-    threshold *= 2.0f / static_cast<float>(
-                            frame.width() *
-                            frame.height()); // this will detect stars that are at least twice as bright as the average
+
+    // this will detect stars that are at least threshold_fator as bright as the average
+    threshold *= threshold_factor / static_cast<float>(frame.width() * frame.height());
 
     const auto add_adj = [](std::vector<std::pair<int, int>> &stack, int i, int j) {
         stack.push_back({i - 1, j - 1});
