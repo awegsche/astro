@@ -41,6 +41,7 @@ list(APPEND AV_LIBS
   nlohmann_json::nlohmann_json
   ZLIB::ZLIB
   nbtlib
+  Eigen3::Eigen
   )
 
 target_link_libraries(astro_cli PRIVATE ${AV_LIBS})

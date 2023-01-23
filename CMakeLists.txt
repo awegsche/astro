@@ -15,6 +15,7 @@ find_package(imgui CONFIG REQUIRED)
 #find_package(devil REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
 #find_package(TIFF CONFIG REQUIRED)
 
 message("glew include: ${GLEW_INCLUDE_DIRS}")
@@ -28,9 +29,12 @@ include_directories(
   ${CUDAToolkit_INCLUDE_DIRS}
   ${SPDLOG_INCLUDE_DIR}
   ${IMGUI_INCLUDE_DIR}
+  ${Eigen3_INCLUDE_DIR}
   )
 
 message("CUDA toolkit: ${CUDAToolkit_INCLUDE_DIRS}")
+message("eigen incl: ${Eigen3_INCLUDE_DIR}")
+message("eigen incl: ${Eigen3_INCLUDE_DIRS}")
 
 add_subdirectory("ext/dear_spdlog")
 add_subdirectory("ext/LibRaw-cmake")
