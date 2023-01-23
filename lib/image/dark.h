@@ -3,14 +3,12 @@
 
 #include "image.h"
 
-class Dark : public ImageFile<RGBFloat> {
+template<typename TImage> 
+class Dark {
     public:
-    static std::optional<Dark> load(ImagePath const &path, std::unique_ptr<LibRaw> const &processor) {
-        Dark l{};
-        if (!l.image_from_image_path(path, processor))
-            return {};
-        return l;
-    }
-};
+        Dark(fs::path const& path) : m_image(path) {}
 
+    private:
+        TImage m_image;
+};
 #endif // DARK_H_

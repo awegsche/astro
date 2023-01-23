@@ -1,6 +1,7 @@
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <libraw/libraw.h>
@@ -8,166 +9,234 @@
 #include <memory>
 #include <optional>
 #include <spdlog/spdlog.h>
+#include <stdint.h>
+#include <vcruntime.h>
 #include <zlib.h>
 
 #include "frame.h"
 #include "image_path.h"
 #include "libraw/libraw_const.h"
+#include "nbt.h"
+#include "star_detection.h"
 
-template <typename Color> class ImageFile {
-  public:
-    ImageFile(){};
+using nbt::NbtTagType;
 
-    ImageFile(Frame<Color> const &frame, fs::path const &path) : m_frame(frame), m_path(path) {}
-
-  public:
-    /// reloads the image (to save RAM)
-    void unload() { m_frame = {}; }
-
-    /// reloads after an unload
-    void reload() { load_binary(m_path); }
-
-    bool is_loaded() const { return m_frame.is_loaded(); }
-
-    auto frame() const -> Frame<Color> const & { return m_frame; }
-
-    auto frame() -> Frame<Color> & { return const_cast<Frame<Color> &>(std::as_const(*this).frame()); }
-
-    void change_path(fs::path const &path) { m_path = path; }
-
-    auto path() const -> fs::path const & { return m_path; }
-
-    auto filename() const -> fs::path { return m_path.filename(); }
-
-    auto id() const -> std::string const & { return m_id; }
-
+class Image {
   protected:
-    bool image_from_image_path(ImagePath const &path, std::unique_ptr<LibRaw> const &processor) {
-        switch (path.type) {
-        case ImagePath::RawImage: {
-            // first loading, always convert
-            load_raw(path.raw_path, processor);
-            m_path = path.converted_path;
-            save_to_binary();
-            return true;
-        }
-        case ImagePath::Converted: {
+    fs::path m_filename;
 
-            // load_binary(path.converted_path);
-            m_path = path.converted_path;
-            return true;
-        }
-        case ImagePath::None:
-            return false;
-        }
-    }
+  public:
+    Image(fs::path const &filename) : m_filename(filename) {}
 
-    void save_to_binary() const {
+    virtual void reload() = 0;
 
-        // TODO: add checks
-        std::ofstream ofile{m_path, std::ios::binary};
+    virtual void force_reload() = 0;
 
-        size_t n_bytes = sizeof(Color) * m_frame.width() * m_frame.height();
-        auto w         = m_frame.width();
-        auto h         = m_frame.height();
-        ofile.write(reinterpret_cast<const char *>(&w), sizeof(size_t));
-        ofile.write(reinterpret_cast<const char *>(&h), sizeof(size_t));
-        ofile.write(reinterpret_cast<const char *>(&m_meta), sizeof(FileMeta));
+    virtual void unload() = 0;
 
-        ofile.write(reinterpret_cast<char const *>(m_frame.data()), n_bytes);
-    }
+    auto path() const -> fs::path const & { return m_filename; }
+};
 
-  private:
-    /// Loads a raw image file (e.g. Canon CR2) at the given file path.
-    void load_raw(fs::path const &file, std::unique_ptr<LibRaw> const &processor) {
+struct BayerChannel {
+    Frame<Cu16> frame                              = {};
+    std::vector<pixel_value<float>> detected_stars = {};
+};
 
-        spdlog::info("opening raw image \"{}\"", file.string());
-        if (processor->open_file(file.c_str()) != LIBRAW_SUCCESS) {
-            spdlog::error("opening raw image failed");
-            return;
-        }
-        auto const &sizes = processor->imgdata.sizes;
-        spdlog::info("Image size: {} {}", sizes.width, sizes.height);
+class BayerImage : public Image {
+    BayerChannel m_red     = {};
+    BayerChannel m_blue    = {};
+    BayerChannel m_green_1 = {};
+    BayerChannel m_green_2 = {};
 
-        m_meta.aperture = processor->imgdata.other.aperture;
-        m_meta.shutter  = processor->imgdata.other.shutter;
-        m_meta.iso      = processor->imgdata.other.iso_speed;
+  public:
+    explicit BayerImage(fs::path const &filename) : Image(filename) {}
 
-        // we can stop here for lazy loading
+    /// imports a camera raw image and immediately saves it as `.nbt` file
+    static BayerImage import_raw(fs::path const &filename) {
+        auto nbt_filename = filename;
+        nbt_filename.replace_extension("nbt");
 
-        processor->unpack();
-        processor->raw2image();
+        BayerImage im{nbt_filename};
 
-        m_frame            = Frame<Color>{(size_t)sizes.width - 1, (size_t)sizes.height - 1};
-        auto const &imdata = processor->imgdata.image;
+        LibRaw processor{};
 
-        for (int j = 0; j < sizes.height - 1; ++j) {
-            for (int i = 0; i < sizes.width - 1; ++i) {
-                // debayer
-                // [R] G R G
-                //  G  B G B
-                auto idx11 = j * sizes.width + i;
-                auto idx12 = idx11 + 1;
-                auto idx21 = idx11 + sizes.width;
-                auto idx22 = idx21 + 1;
+        processor.open_file(filename.string().c_str());
 
-                auto get_channel = [&imdata, idx11, idx12, idx21, idx22](int ch) {
-                    return imdata[idx11][ch] + imdata[idx12][ch] + imdata[idx21][ch] + imdata[idx22][ch];
-                };
-                auto to_float = [](ushort value) {
-                    return static_cast<float>(value) / std::numeric_limits<ushort>::max();
-                };
+        spdlog::info("RAW file {}", filename.filename().string());
+        processor.unpack();
 
-                ushort r = get_channel(0);
-                ushort g = get_channel(1) + get_channel(3);
-                ushort b = get_channel(2);
+        processor.raw2image();
 
-                m_frame.push_back({to_float(r), to_float(g) * 0.5f, to_float(b)});
+        std::vector<uint8_t> reds;
+        std::vector<uint8_t> blues;
+        std::vector<uint8_t> greens_1;
+        std::vector<uint8_t> greens_2;
+
+        auto width        = processor.imgdata.sizes.width / 2;
+        auto height       = processor.imgdata.sizes.height / 2;
+        auto const &image = processor.imgdata.image;
+
+        reds.reserve(width * height * 2);
+        blues.reserve(width * height * 2);
+        greens_1.reserve(width * height * 2);
+        greens_2.reserve(width * height * 2);
+
+        im.m_red.frame.reserve(width, height);
+        im.m_blue.frame.reserve(width, height);
+        im.m_green_1.frame.reserve(width, height);
+        im.m_green_2.frame.reserve(width, height);
+
+        const auto push_pixel = [width, height, &image](BayerChannel &channel, std::vector<uint8_t> &vec, int x, int y,
+                                                        int ch) {
+            auto idx       = y * width * 2 + x;
+            uint16_t value = image[idx][ch];
+
+            channel.frame.push_back({value});
+            vec.push_back(static_cast<uint8_t>(value >> 8));
+            vec.push_back(static_cast<uint8_t>(value & 0xFF));
+        };
+
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                push_pixel(im.m_red, reds, 2 * x, 2 * y, 0);
+                push_pixel(im.m_green_1, greens_1, 2 * x + 1, 2 * y, 1);
+                push_pixel(im.m_green_2, greens_2, 2 * x, 2 * y + 1, 3);
+                push_pixel(im.m_blue, blues, 2 * x + 1, 2 * y + 1, 2);
             }
         }
-        processor->recycle();
+
+        nbt::compound nbt_file{};
+
+        nbt_file.insert_node(static_cast<int32_t>(width), "width");
+        nbt_file.insert_node(static_cast<int32_t>(height), "height");
+        nbt_file.insert_node(reds, "reds");
+        nbt_file.insert_node(greens_1, "greens_1");
+        nbt_file.insert_node(greens_2, "greens_2");
+        nbt_file.insert_node(blues, "blues");
+
+        nbt::nbt_node n{std::move(nbt_file)};
+
+        nbt::write_to_file(n, nbt_filename.string());
+
+        return im;
     }
 
-    void load_binary(fs::path const &filename) {
-        std::ifstream ifile{filename, std::ios::binary};
-        size_t w;
-        size_t h;
+    // ---- meta information -----------------------------------------------------------------------
+    //
+    /// Saves the meta information to a file besides the origninal image
+    void save_meta() const {
+        nbt::compound nbt_stars{};
 
-        if (!ifile.is_open()) {
-            spdlog::error("error opening binary image file");
+        auto const pixel_values_to_nbt = [](std::vector<pixel_value<float>> const &stars) {
+            std::vector<nbt::nbt_node> float_stars;
+            for (const auto &s : stars) {
+                nbt::compound nbt_s;
+
+                nbt_s.insert_node(s.x, "x");
+                nbt_s.insert_node(s.y, "y");
+                nbt_s.insert_node(s.value, "value");
+
+                float_stars.push_back(nbt::nbt_node{std::move(nbt_s)});
+            }
+            return float_stars;
+        };
+
+        nbt_stars.insert_node(pixel_values_to_nbt(m_red.detected_stars), "red stars");
+        nbt_stars.insert_node(pixel_values_to_nbt(m_blue.detected_stars), "blue stars");
+        nbt_stars.insert_node(pixel_values_to_nbt(m_green_1.detected_stars), "green1 stars");
+        nbt_stars.insert_node(pixel_values_to_nbt(m_green_2.detected_stars), "green2 stars");
+
+        nbt::write_to_file(std::move(nbt_stars), get_meta_path().string());
+    }
+
+    fs::path get_meta_path() const {
+
+        auto meta_path = path();
+        meta_path.replace_filename(meta_path.filename().string() + "_meta");
+        return meta_path;
+    }
+
+    void load_meta() {
+        auto meta = nbt::read_from_file(get_meta_path().string());
+        auto const pixel_values_from_nbt =
+            [](std::vector<nbt::nbt_node> const &list) -> std::vector<pixel_value<float>> {
+            std::vector<pixel_value<float>> stars;
+            for (const auto &s : list) {
+                stars.push_back({
+                    s.get_field<nbt::TAG_Float>("x"),
+                    s.get_field<nbt::TAG_Float>("y"),
+                    s.get_field<nbt::TAG_Float>("value"),
+                });
+            }
+            return stars;
+        };
+
+        m_red.detected_stars     = pixel_values_from_nbt(meta.get_field<nbt::TAG_List>("red stars"));
+        m_blue.detected_stars    = pixel_values_from_nbt(meta.get_field<nbt::TAG_List>("blue stars"));
+        m_green_1.detected_stars = pixel_values_from_nbt(meta.get_field<nbt::TAG_List>("green1 stars"));
+        m_green_2.detected_stars = pixel_values_from_nbt(meta.get_field<nbt::TAG_List>("green2 stars"));
+    }
+
+    // ---- lazy loading ---------------------------------------------------------------------------
+
+    void reload() override {
+        if (m_red.frame.empty())
+            force_reload();
+    }
+
+    void force_reload() override {
+        spdlog::info("reloading");
+        nbt::nbt_node n = nbt::read_from_file(m_filename.string());
+        if (!n) {
+            spdlog::error("couldn't open bayer image '{}'", m_filename.string());
             return;
         }
 
-        ifile.read(reinterpret_cast<char *>(&w), sizeof(size_t));
-        ifile.read(reinterpret_cast<char *>(&h), sizeof(size_t));
+        auto width  = n.get_field<NbtTagType::TAG_Int>("width");
+        auto height = n.get_field<NbtTagType::TAG_Int>("height");
+        // copy data over
+        auto copy_nbt_array = [width, height](nbt::nbt_node const &node, char const *field) -> Frame<Cu16> {
+            Frame<Cu16> frame{};
+            frame.reserve(width, height);
+            std::vector<uint8_t> nbt_frame = node.get_field<NbtTagType::TAG_Byte_Array>(field);
+            for (int i = 0; i < width * height; ++i) {
+                frame.push_back({static_cast<uint16_t>(nbt_frame[2 * i] << 8 | nbt_frame[2 * i + 1])});
+            }
+            return frame;
+        };
 
-        ifile.read(reinterpret_cast<char *>(&m_meta), sizeof(FileMeta));
-
-        auto frame  = Frame<Color>::empty(w, h);
-        Color *data = frame.data();
-
-        ifile.read(reinterpret_cast<char *>(data), sizeof(Color) * w * h);
+        m_red.frame     = copy_nbt_array(n, "reds");
+        m_blue.frame    = copy_nbt_array(n, "blues");
+        m_green_1.frame = copy_nbt_array(n, "greens_1");
+        m_green_2.frame = copy_nbt_array(n, "greens_2");
     }
 
-  public:
-    enum FileType {
-        Raw,
-        Converted,
-    };
-    struct FileMeta {
-        float shutter  = 0.0f;
-        float iso      = 0.0f;
-        float aperture = 0.0f;
-    };
+    void unload() override {
+        m_red     = {};
+        m_blue    = {};
+        m_green_1 = {};
+        m_green_2 = {};
+    }
 
-  private:
-    fs::path m_path      = {};
-    FileType m_type      = Raw;
-    FileMeta m_meta      = {};
-    Frame<Color> m_frame = {};
+    // ---- star detection -------------------------------------------------------------------------
 
-  protected:
-    std::string m_id = "";
+    void detect_stars() {
+        spdlog::info("detecting stars");
+        auto red_stars    = ::detect_stars(m_red.frame);
+        auto green1_stars = ::detect_stars(m_green_1.frame);
+        auto green2_stars = ::detect_stars(m_green_2.frame);
+        auto blue_stars   = ::detect_stars(m_blue.frame);
+
+        std::sort(red_stars.begin(), red_stars.end(), std::greater<>{});
+        std::sort(blue_stars.begin(), blue_stars.end(), std::greater<>{});
+
+        save_meta();
+    }
+
+    auto reds() const -> BayerChannel const & { return m_red; }
+    auto blues() const -> BayerChannel const & { return m_blue; }
+    auto greens_1() const -> BayerChannel const & { return m_green_1; }
+    auto greens_2() const -> BayerChannel const & { return m_green_2; }
 };
 
 #endif // IMAGE_H_

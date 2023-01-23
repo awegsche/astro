@@ -9,38 +9,30 @@
 #include <utility>
 #include <vector>
 
-#include "star_detection.h"
 #include "frame.h"
 #include "image.h"
 #include "image_path.h"
+#include "star_detection.h"
 
 using nlohmann::json;
 
-class Light : public ImageFile<RGBFloat> {
+template <typename TImage> class Light {
   public:
     Light() {}
 
-    static std::optional<Light> load(ImagePath const &path, std::unique_ptr<LibRaw> const &processor) {
-        Light l{};
-        if (!l.image_from_image_path(path, processor))
-            return {};
-        // TODO: load stars from json
-        auto meta_path = path.converted_path;
+    Light(fs::path const &path) : m_image(path) {
+
+        auto meta_path = path;
         meta_path.replace_extension("json");
         if (fs::exists(meta_path)) {
             std::ifstream ifile{meta_path};
             json meta  = json::parse(ifile);
             auto stars = meta["stars"];
             for (const auto &s : stars) {
-                l.m_stars.push_back({s[0], s[1], s[2]});
+                m_stars.push_back({s[0], s[1], s[2]});
             }
         }
-
-        l.m_id = path.converted_path.stem().string();
-        return l;
     }
-
-    void detect_stars() { m_stars = ::detect_stars(frame()); }
 
     void save() const {
         if (!m_stars.empty()) {
@@ -56,7 +48,7 @@ class Light : public ImageFile<RGBFloat> {
             }
             meta.push_back(stars);
 
-            auto meta_path = path();
+            auto meta_path = m_image.path();
             meta_path.replace_extension("json");
             std::ofstream ofile{meta_path};
             ofile << meta;
@@ -64,6 +56,7 @@ class Light : public ImageFile<RGBFloat> {
     }
 
   private:
+    TImage m_image;
     std::vector<pixel_value<float>> m_stars = {};
 };
 
