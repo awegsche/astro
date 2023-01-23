@@ -14,7 +14,7 @@
 #include "image.h"
 #include "image_path.h"
 #include "light.h"
-//#include "screen.h"
+// #include "screen.h"
 #include "star_detection.h"
 
 using namespace std::chrono_literals;
@@ -28,15 +28,11 @@ class PhotoBatch {
         auto processor = std::make_unique<LibRaw>();
 
         for (auto const &f : fs::directory_iterator{path_lights}) {
-            auto light = Light::load(get_image_path(f), processor);
-            if (light)
-                m_lights.push_back(*light);
+            m_lights.emplace_back(f.path());
         }
 
         for (auto const &f : fs::directory_iterator{path_darks}) {
-            auto dark = Dark::load(get_image_path(f), processor);
-            if (dark)
-                m_darks.push_back(*dark);
+            m_darks.emplace_back(f.path());
         }
     }
 
@@ -59,8 +55,8 @@ class PhotoBatch {
   public:
     fs::path m_root;
 
-    std::vector<Light> m_lights;
-    std::vector<Dark> m_darks;
+    std::vector<Light<BayerImage>> m_lights;
+    std::vector<Dark<BayerImage>> m_darks;
 };
 
 // TODO: move this into separate files
