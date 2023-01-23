@@ -52,7 +52,7 @@ template <typename Color> class Frame {
     Frame() {}
     Frame(size_t width, size_t height) : m_width(width), m_height(height) { m_data.reserve(width * height); }
 
-    static Frame empty(size_t width, size_t height) {
+    static Frame create_empty(size_t width, size_t height) {
         Frame frame{};
         frame.resize(width, height);
         return frame;
@@ -76,7 +76,10 @@ template <typename Color> class Frame {
         m_data.resize(new_height * new_width);
     }
 
-    void reserve(size_t new_size) { m_data.reserve(new_size * 3); }
+    void reserve(size_t new_width, size_t new_height) {
+        set_size(new_width, new_height);
+        m_data.reserve(new_width * new_height);
+    }
 
     void push_back(Color c) { m_data.push_back(c); }
 
@@ -99,6 +102,9 @@ template <typename Color> class Frame {
     size_t width() const { return m_width; };
 
     size_t height() const { return m_height; };
+
+    /// returns true if the frame hasn't been loaded (`m_data` is empty)
+    bool empty() const { return m_data.empty(); }
 };
 
 #endif // FRAME_H_
