@@ -4,6 +4,7 @@
 #include <iostream>
 #include <libraw/libraw.h>
 #include <nbt.h>
+#include <numeric>
 #include <spdlog/spdlog.h>
 #include <stdint.h>
 #include <vector>
@@ -25,6 +26,9 @@ int main(int argc, char **argv) {
 
     fs::path root = "K:/Astro/test/lights";
 
+    constexpr int WINDOW        = 7;
+    constexpr int CLOSEST_STARS = 30;
+    constexpr int BUFFER        = CLOSEST_STARS + 10;
     std::vector<std::vector<Eigen::Vector2f>> all_the_stars;
 
     for (const auto &info : fs::directory_iterator{root}) {
@@ -35,9 +39,9 @@ int main(int argc, char **argv) {
 
         spdlog::info("loading nbt image {}", info.path().string());
         BayerImage im{info.path()};
-        // im.reload();
-        //  this is for importing and converting
-        //  auto im = BayerImage::import_raw(info.path());
+        //  im.reload();
+        //    this is for importing and converting
+        //    auto im = BayerImage::import_raw(info.path());
 
         // detect stars
         // im.detect_stars();
@@ -46,17 +50,16 @@ int main(int argc, char **argv) {
         im.load_meta();
 
         auto &detected_stars = all_the_stars.emplace_back();
-        std::transform(im.reds().detected_stars.cbegin(), im.reds().detected_stars.cbegin() + 30,
+        std::transform(im.reds().detected_stars.cbegin(), im.reds().detected_stars.cbegin() + BUFFER,
                        std::back_inserter(detected_stars), [](pixel_value<float> const &s) -> Eigen::Vector2f {
                            return {s.x, s.y};
                        });
     }
 
-    constexpr int WINDOW = 5;
-
     std::array<float, WINDOW> distances;
+    std::array<pixel_value<float>, CLOSEST_STARS> best_matches;
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < CLOSEST_STARS; ++i) {
         auto reference = all_the_stars[0][i];
         spdlog::info("reference: ({}, {})", reference.x(), reference.y());
 
@@ -70,7 +73,23 @@ int main(int argc, char **argv) {
 
         auto const &closest = all_the_stars[1][offset + idx];
         spdlog::info("closest to reference: {} | ({}, {})", distances[idx], closest.x(), closest.y());
+        spdlog::info("");
+        best_matches[i] = {closest.x(), closest.y(), distances[idx]};
     }
+
+    std::sort(best_matches.begin(), best_matches.end());
+
+    spdlog::info("sorted by best match: ");
+    for (const auto &[x, y, value] : best_matches) {
+        spdlog::info("({}, {}) [{}]", x, y, value);
+    }
+
+    float average = std::accumulate(best_matches.begin(), best_matches.end(), 0.0f,
+                                    [](float sum, pixel_value<float> const &p) { return sum + p.value; }) /
+                    static_cast<float>(best_matches.size());
+
+    spdlog::info("average: {}", average);
+    spdlog::info("median: {}", best_matches[best_matches.size() / 2].value);
 
     return 0;
 }
