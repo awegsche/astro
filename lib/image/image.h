@@ -10,7 +10,6 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <stdint.h>
-#include <vcruntime.h>
 #include <zlib.h>
 
 #include "frame.h"
@@ -127,7 +126,7 @@ class BayerImage : public Image {
     void save_meta() const {
         nbt::compound nbt_stars{};
 
-        auto const pixel_values_to_nbt = [](std::vector<pixel_value<float>> const &stars) {
+        auto const pixel_values_to_nbt = [](std::vector<pixel_value<float>> const &stars) -> std::vector<nbt::nbt_node> {
             std::vector<nbt::nbt_node> float_stars;
             for (const auto &s : stars) {
                 nbt::compound nbt_s;
@@ -222,13 +221,15 @@ class BayerImage : public Image {
 
     void detect_stars() {
         spdlog::info("detecting stars");
-        auto red_stars    = ::detect_stars(m_red.frame);
-        auto green1_stars = ::detect_stars(m_green_1.frame);
-        auto green2_stars = ::detect_stars(m_green_2.frame);
-        auto blue_stars   = ::detect_stars(m_blue.frame);
+        m_red.detected_stars     = ::detect_stars(m_red.frame);
+        m_green_1.detected_stars = ::detect_stars(m_green_1.frame);
+        m_green_2.detected_stars = ::detect_stars(m_green_2.frame);
+        m_blue.detected_stars    = ::detect_stars(m_blue.frame);
 
-        std::sort(red_stars.begin(), red_stars.end(), std::greater<>{});
-        std::sort(blue_stars.begin(), blue_stars.end(), std::greater<>{});
+        std::sort(m_red.detected_stars.begin(), m_red.detected_stars.end(), std::greater<>{});
+        std::sort(m_blue.detected_stars.begin(), m_blue.detected_stars.end(), std::greater<>{});
+        std::sort(m_green_1.detected_stars.begin(), m_green_1.detected_stars.end(), std::greater<>{});
+        std::sort(m_green_2.detected_stars.begin(), m_green_2.detected_stars.end(), std::greater<>{});
 
         save_meta();
     }
