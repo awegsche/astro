@@ -13,3 +13,6 @@
 [submodule "ext/nbt"]
 	path = ext/nbt
 	url = git@github.com:awegsche/nbt.git
+[submodule "ext/vcpkg"]
+	path = ext/vcpkg
+	url = git@github.com:Microsoft/vcpkg.git
