@@ -3,25 +3,25 @@ name: Test Build
 on: [push, pull_request]
 
 jobs:
-  - name: Ubuntu
-    build:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Run CMake
-        run: mkdir out && mkdir out/debug &&  cmake --preset linux-debug
-      - name: Build CLI
-        run: cmake --build --preset linux-debug --target astro_cli
-  - name: Windows
-    build:
-      runs-on: windows-latest
-      steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Run CMake
-        run: mkdir out && mkdir out/debug &&  cmake --preset windows-debug
-      - name: Build CLI
-        run: cmake --build --preset windows-debug --target astro_cli
+  
+  test-build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Run CMake
+      run: mkdir out && mkdir out/debug &&  cmake --preset linux-debug
+    - name: Build CLI
+      run: cmake --build --preset linux-debug --target astro_cli
+ 
+  test-build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Run CMake
+      run: mkdir out && mkdir out/debug &&  cmake --preset windows-debug
+    - name: Build CLI
+      run: cmake --build --preset windows-debug --target astro_cli
