@@ -11,7 +11,7 @@ jobs:
       with:
         submodules: 'recursive'
     - name: Prepare System
-      run: sudo apt-get install -y libxmu-dev libxi-dev libgl-dev
+      run: sudo apt-get install -y libxmu-dev libxi-dev libgl-dev libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config
     - uses: Jimver/cuda-toolkit@v0.2.8
       id: cuda-toolkit
       with:
