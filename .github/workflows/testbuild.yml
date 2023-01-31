@@ -10,6 +10,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: 'recursive'
+    - name: Prepare System
+      run: apt-get install libxmu-dev libxi-dev libgl-dev
     - name: Run CMake
       run: mkdir out && mkdir out/debug &&  cmake --preset linux-debug
     - name: Build CLI
