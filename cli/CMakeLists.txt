@@ -13,6 +13,7 @@ message(
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   ${ASTRO_LIB_INCLUDE_DIRS}
+  ${ARMADILLO_INCLUDE_DIRS}
   )
 
 set(HEADERS
@@ -36,12 +37,13 @@ add_executable(astro_cli
 set(AV_LIBS "")
 
 list(APPEND AV_LIBS
-  spdlog::spdlog
-  libraw::libraw
-  nlohmann_json::nlohmann_json
-  ZLIB::ZLIB
-  nbtlib
-  Eigen3::Eigen
-  )
+        spdlog::spdlog
+        libraw::libraw
+        nlohmann_json::nlohmann_json
+        ZLIB::ZLIB
+        nbtlib
+        ${ARMADILLO_LIBRARIES}
+        PNG::PNG
+        )
 
 target_link_libraries(astro_cli PRIVATE ${AV_LIBS})

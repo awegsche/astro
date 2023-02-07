@@ -1,5 +1,5 @@
 {
-    "version": 6,
+    "version": 5,
     "cmakeMinimumRequired": {
         "major": 3,
         "minor": 23,
@@ -25,8 +25,30 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/debug-win",
             "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/ext/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "LIBRAW_PATH": "${sourceDir}/ext/LibRaw"
+            }
+        },
+        {
+            "name": "msys-clang",
+            "displayName": "MSYS2 Debug",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/debug-msys-clang",
+            "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/ext/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "LIBRAW_PATH": "${sourceDir}/ext/LibRaw"
+            }
+        },
+        {
+            "name": "msys-debug",
+            "displayName": "MSYS2 Debug",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/debug-msys",
+            "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/ext/vcpkg/scripts/buildsystems/vcpkg.cmake",
                 "LIBRAW_PATH": "${sourceDir}/ext/LibRaw"
@@ -41,6 +63,14 @@
         {
             "name": "windows-debug",
             "configurePreset": "windows-debug"
+        },
+        {
+            "name": "msys-clang",
+            "configurePreset": "msys-clang"
+        },
+        {
+            "name": "msys-debug",
+            "configurePreset": "msys-debug"
         }
     ]
 }
