@@ -140,7 +140,7 @@ void MainWindow::begin_frame() {
     ImGui::SetNextWindowSize({left_margin, m_window_height - bottom_margin});
     ImGui::Begin("Left Panel", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-    m_batch.draw_imgui(m_screen);
+    //m_batch.draw_imgui(m_screen);
     ImGui::End();
 
     ImGui::SameLine();
@@ -149,7 +149,7 @@ void MainWindow::begin_frame() {
 
     // ---- Floating Windows ------------------------------------------------------------------------
     // and, finally draw all floating windows
-    m_batch.draw_floating();
+    //m_batch.draw_floating();
 }
 
 auto Config::load_default() -> Config {

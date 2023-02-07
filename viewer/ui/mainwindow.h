@@ -48,13 +48,13 @@ class MainWindow {
 
     // data
     std::filesystem::path m_root = {};
-    BatchUi m_batch              = {};
+    //BatchUi m_batch              = {};
 
   public:
     // public for debugging
     Screen m_screen = {};
 
-    MainWindow(std::filesystem::path const &root, GLsizei width = DEFAULT_WIDTH, GLsizei height = DEFAULT_HEIGHT);
+    explicit MainWindow(std::filesystem::path const &root, GLsizei width = DEFAULT_WIDTH, GLsizei height = DEFAULT_HEIGHT);
 
     ~MainWindow();
 
@@ -62,6 +62,7 @@ class MainWindow {
 
     void end_frame() const;
 
+    [[nodiscard]]
     bool should_close() const { return glfwWindowShouldClose(m_window); }
 };
 
