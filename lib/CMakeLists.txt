@@ -15,20 +15,22 @@ set(ASTRO_LIB_INCLUDE_DIRS
 )
 
 set(ASTRO_LIB_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/star_detection.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/dark.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/frame.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/image_path.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/image.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/light.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/photobatch.h
-  PARENT_SCOPE
-)
-  
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/star_detection.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/dark.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/frame.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/image_path.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/image.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/light.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/photobatch.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/pngimage.h
+        PARENT_SCOPE
+        )
+
 set(ASTRO_LIB_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/image_path.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/image.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/image/photobatch.cpp
-  PARENT_SCOPE
-)
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/image_path.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/image.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/photobatch.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/image/pngimage.cpp
+        PARENT_SCOPE
+        )
 

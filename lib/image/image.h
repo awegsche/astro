@@ -9,7 +9,8 @@
 #include <memory>
 #include <optional>
 #include <spdlog/spdlog.h>
-#include <stdint.h>
+#include <cstdint>
+#include <utility>
 #include <zlib.h>
 
 #include "frame.h"
@@ -18,22 +19,36 @@
 #include "nbt.h"
 #include "star_detection.h"
 
+#include <png.h>
+
 using nbt::NbtTagType;
 
+/// Image Base class.
+///
+/// An image is anythig that holds picture information (2D grid of pixels) and holds a connection to the disk.
+///
+/// Images are meant to be lazily loaded and unloaded if the pixel data is no longer needed.
+/// For this purpose, the functions `reload()`, `force_reload()` and `unload()` must be overriden.
 class Image {
   protected:
     fs::path m_filename;
 
   public:
-    Image(fs::path const &filename) : m_filename(filename) {}
+    explicit Image(fs::path filename) : m_filename(std::move(filename)) {}
 
-    virtual void reload() = 0;
+    void reload() {
+        if (!is_loaded())
+            force_reload();
+    }
 
     virtual void force_reload() = 0;
 
     virtual void unload() = 0;
 
-    auto path() const -> fs::path const & { return m_filename; }
+    [[nodiscard]]
+    virtual bool is_loaded() const = 0;
+
+    [[nodiscard]] auto path() const -> fs::path const & { return m_filename; }
 };
 
 struct BayerChannel {
@@ -71,8 +86,8 @@ class BayerImage : public Image {
         std::vector<uint8_t> greens_1;
         std::vector<uint8_t> greens_2;
 
-        auto width        = processor.imgdata.sizes.width / 2;
-        auto height       = processor.imgdata.sizes.height / 2;
+        auto const width        = processor.imgdata.sizes.width / 2;
+        auto const height       = processor.imgdata.sizes.height / 2;
         auto const &image = processor.imgdata.image;
 
         reds.reserve(width * height * 2);
@@ -135,7 +150,7 @@ class BayerImage : public Image {
                 nbt_s.insert_node(s.y, "y");
                 nbt_s.insert_node(s.value, "value");
 
-                float_stars.push_back(nbt::nbt_node{std::move(nbt_s)});
+                float_stars.emplace_back(std::move(nbt_s));
             }
             return float_stars;
         };
@@ -148,7 +163,7 @@ class BayerImage : public Image {
         nbt::write_to_file(std::move(nbt_stars), get_meta_path().string());
     }
 
-    fs::path get_meta_path() const {
+    [[nodiscard]] fs::path get_meta_path() const {
 
         auto meta_path = path();
         meta_path.replace_filename(meta_path.filename().string() + "_meta");
@@ -178,9 +193,8 @@ class BayerImage : public Image {
 
     // ---- lazy loading ---------------------------------------------------------------------------
 
-    void reload() override {
-        if (m_red.frame.empty())
-            force_reload();
+    bool is_loaded() const override {
+        return !m_red.frame.empty();
     }
 
     void force_reload() override {

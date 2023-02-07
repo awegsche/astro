@@ -70,6 +70,7 @@ template <typename Color> class Frame {
 
     // ---- STL-like access ------------------------------------------------------------------------
     //
+    /// STL-like resize, sets width and height and `.resize()`s the data array
     void resize(size_t new_width, size_t new_height) {
         m_width  = new_width;
         m_height = new_height;
@@ -81,7 +82,9 @@ template <typename Color> class Frame {
         m_data.reserve(new_width * new_height);
     }
 
-    void push_back(Color c) { m_data.push_back(c); }
+    void push_back(Color c) {
+        m_data.push_back(c);
+    }
 
     constexpr auto begin() noexcept { return m_data.begin(); }
 
