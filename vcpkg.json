@@ -10,6 +10,7 @@
     },
     "nlohmann-json",
     "zlib",
-    "eigen3"
+    "armadillo",
+    "libpng"
   ]
 }
