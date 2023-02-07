@@ -4,6 +4,7 @@
 #include <numeric>
 #include <stdint.h>
 #include <vector>
+#include <queue>
 
 #include <libraw/libraw.h>
 #include <nbt.h>
@@ -14,13 +15,36 @@
 #include "frame.h"
 #include "star_detection.h"
 #include "PngImage.h"
+#include "../viewer/ui/mainwindow.h"
 
 using nbt::nbt_node;
 using std::cout, std::endl;
 
+// let's try tasks
+class Task {
+  public:
+    [[nodiscard]]
+    virtual bool is_finished() const = 0;
+};
+
+
+class TestTask: public Task {
+
+    std::future<void> m_future;
+
+  public:
+    bool is_finished() const override{
+        return m_future.wait_for(0s) == std::future_status::ready;
+    }
+
+};
+
 int main(int argc, char **argv) {
     cout << "Hello" << endl;
     cout << "this tool will convert raw files into a more manageable nbt format" << endl;
+
+    std::queue<std::unique_ptr<Task>> tasks{};
+    MainWindow window{""};
 
     for (int arg = 0; arg < argc; ++arg)
         cout << argv[arg] << endl;

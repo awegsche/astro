@@ -86,9 +86,6 @@ MainWindow::MainWindow(fs::path const &root, GLsizei width, GLsizei height)
     m_screen.init();
 
     m_isvalid = true;
-
-    if (fs::exists(m_root))
-        m_batch.load(m_root);
 }
 
 void MainWindow::end_frame() const {
